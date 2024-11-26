@@ -51,7 +51,20 @@ pip3 install -r requirements.txt
 
 * This model is not reported by our paper, for our paper model please refer to [evaluation](https://github.com/hzwer/ECCV2022-RIFE#evaluation).
 
-### Run
+### Run (For Cloudweave)
+**Multi-Frame Interpolation**
+```
+python .\inference_video.py --exp=6 --img=input_frames/
+```
+Edit the --exp value for more frames
+
+**Stitch frames into video using ffmpeg**
+```
+ffmpeg -r 60 -f image2 -i vid_out/%07d.png -vf "scale=ceil(iw/2)*2:ceil(ih/2)*2" -c:v libx264 -pix_fmt yuv420p videos/23OCT.mp4 -q:v 0 -q:a 0
+```
+Output video will be stored in ./videos. Make sure frames in ./vid_out are named as 0000000.png, 0000001.png and so on
+
+### General Run
 
 **Video Frame Interpolation**
 
