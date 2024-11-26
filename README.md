@@ -56,7 +56,7 @@ pip3 install -r requirements.txt
 ```
 python .\inference_video.py --exp=6 --img=input_frames/
 ```
-Edit the --exp value for more frames
+Edit the --exp value for more frames. Output frames will be stored in ./vid_out
 
 **Stitch frames into video using ffmpeg**
 ```
