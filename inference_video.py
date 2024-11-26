@@ -136,7 +136,10 @@ else:
             videogen.append(f)
     tot_frame = len(videogen)
     videogen.sort(key= lambda x:int(x[:-4]))
-    lastframe = cv2.imread(os.path.join(args.img, videogen[0]), cv2.IMREAD_UNCHANGED)[:, :, ::-1].copy()
+    lastframe = cv2.imread(os.path.join(args.img, videogen[0]), cv2.IMREAD_UNCHANGED)
+    if len(lastframe.shape) == 2 or lastframe.shape[2] == 1:
+        lastframe = cv2.cvtColor(lastframe, cv2.COLOR_GRAY2RGB)
+    lastframe = lastframe[:, :, ::-1].copy()
     videogen = videogen[1:]
 h, w, _ = lastframe.shape
 vid_out_name = None
@@ -166,11 +169,14 @@ def clear_write_buffer(user_args, write_buffer):
 def build_read_buffer(user_args, read_buffer, videogen):
     try:
         for frame in videogen:
-             if not user_args.img is None:
-                  frame = cv2.imread(os.path.join(user_args.img, frame), cv2.IMREAD_UNCHANGED)[:, :, ::-1].copy()
-             if user_args.montage:
-                  frame = frame[:, left: left + w]
-             read_buffer.put(frame)
+            if not user_args.img is None:
+                frame = cv2.imread(os.path.join(user_args.img, frame), cv2.IMREAD_UNCHANGED)
+                if len(frame.shape) == 2 or frame.shape[2] == 1:  # Check for grayscale
+                    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+                frame = frame[:, :, ::-1].copy()
+            if user_args.montage:
+                frame = frame[:, left: left + w]
+            read_buffer.put(frame)
     except:
         pass
     read_buffer.put(None)
@@ -220,6 +226,10 @@ while True:
         frame = read_buffer.get()
     if frame is None:
         break
+    if len(frame.shape) == 2:  # Grayscale image
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+    elif frame.shape[2] == 1:  # Single-channel grayscale image
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
     I0 = I1
     I1 = torch.from_numpy(np.transpose(frame, (2,0,1))).to(device, non_blocking=True).unsqueeze(0).float() / 255.
     I1 = pad_image(I1)
