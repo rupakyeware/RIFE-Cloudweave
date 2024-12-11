@@ -10,6 +10,9 @@ import _thread
 import skvideo.io
 from queue import Queue, Empty
 from model.pytorch_msssim import ssim_matlab
+from get_wms_img import fetch_images
+from datetime import datetime, timedelta
+from translateDataset import TranslateDataset
 
 warnings.filterwarnings("ignore")
 
@@ -57,8 +60,16 @@ parser = argparse.ArgumentParser(description='Interpolation for a pair of images
 parser.add_argument('--video', dest='video', type=str, default=None)
 parser.add_argument('--output', dest='output', type=str, default=None)
 parser.add_argument('--img', dest='img', type=str, default=None)
+
+# required extra params
 parser.add_argument('--bbox', dest='bbox', type=str, default=None)
-parser.add_argument('--time', dest='time', type=str, default=None)
+parser.add_argument('--height', dest='height', type=int, default=None)
+parser.add_argument('--width', dest='width', type=int, default=None)
+parser.add_argument('--start_time', dest='start_time', type=str, default=None)
+parser.add_argument('--end_time', dest='end_time', type=str, default=None)
+parser.add_argument('--time_step', dest='time_step', type=int, default=None)
+parser.add_argument('--processed', dest='processed', type=str, default=None)
+
 parser.add_argument('--montage', dest='montage', action='store_true', help='montage origin video')
 parser.add_argument('--model', dest='modelDir', type=str, default='train_log', help='directory with trained model files')
 parser.add_argument('--fp16', dest='fp16', action='store_true', help='fp16 mode for faster and more lightweight inference on cards with Tensor Cores')
@@ -70,6 +81,14 @@ parser.add_argument('--png', dest='png', action='store_true', help='whether to v
 parser.add_argument('--ext', dest='ext', type=str, default='mp4', help='vid_out video extension')
 parser.add_argument('--exp', dest='exp', type=int, default=1)
 args = parser.parse_args()
+
+# Fetch the images from the WMS in TIF
+fetch_images(args.bbox, args.width, args.height, datetime.fromisoformat(args.start_time), datetime.fromisoformat(args.end_time), timedelta(args.time_step))
+
+# Preprocess the images, convert them into png and place them into input_frames
+# td = TranslateDataset(max_threads=8)
+# td.translate_dir(args.img, args.processed)
+
 assert (not args.video is None or not args.img is None)
 if args.skip:
     print("skip flag is abandoned, please refer to issue #207.")
@@ -86,7 +105,6 @@ if torch.cuda.is_available():
     torch.backends.cudnn.benchmark = True
     if(args.fp16):
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
-
 try:
     try:
         try:
