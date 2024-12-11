@@ -1,47 +1,65 @@
-import urllib.request
+import os
+import requests
+from datetime import datetime, timedelta
 
-def get_wms_imgs(bbox, time, save_format):
-    url = f'https://sh.dataspace.copernicus.eu/ogc/wms/eed4bff1-12d6-4792-92f6-8efb209d767e?REQUEST=GetMap&layers=CLOUD_THICKNESS&version=1.1.1&width={1700}&height={800}&srs=EPSG%3A4326&bbox={bbox}&TIME={time}'
-    urllib.request.urlretrieve(url, save_format) 
-    
-def calculate_target_dimensions(bbox, max_dimension):
-    """
-    Calculate the target width and height based on the bounding box and a maximum dimension.
+# GeoServer URL and parameters
+base_url = "http://10.10.11.167:8081/geoserver/cloudweave/wms"
+layer_name = "cloudweave:Oct25-27"
+bbox_input = "-3473242.733735,-1058893.6874970002,3473242.733735,5401854.420193"
+width_input = 768
+height_input = 714
+srs = "EPSG:3148"
+output_format = "image/png"
 
-    Args:
-        bbox (tuple): Bounding box in the format (min_x, min_y, max_x, max_y).
-        max_dimension (int): The maximum allowed width or height for the image.
+# Specify start and end time in ISO 8601 format
+start_time_input = datetime(2024, 10, 26, 10, 0, 0)  # 26th Oct 2024, 10:00 AM
+end_time_input = datetime(2024, 10, 26, 17, 30, 0)   # 26th Oct 2024, 5:30 PM
+time_step_input = timedelta(minutes=30)  # Interval between requests
 
-    Returns:
-        tuple: The target width and height for the WMS request.
-    """
-    min_x, min_y, max_x, max_y = bbox
+# Directory to save the images
+output_directory = "./input_frames"
 
-    # Calculate the width and height of the bounding box in degrees
-    bbox_width = max_x - min_x
-    bbox_height = max_y - min_y
+# Ensure the output directory exists
+os.makedirs(output_directory, exist_ok=True)
 
-    # Calculate the aspect ratio of the bounding box
-    aspect_ratio = bbox_width / bbox_height
+# Function to fetch images
+def fetch_images(bbox, width, height, start_time, end_time, time_step):
+    img_num = 0
+    current_time = start_time
+    while current_time <= end_time:
+        # Format time as ISO 8601
+        time_param = current_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        
+        # Construct the WMS request
+        params = {
+            "service": "WMS",
+            "version": "1.1.0",
+            "request": "GetMap",
+            "layers": layer_name,
+            "bbox": bbox,
+            "width": width,
+            "height": height,
+            "srs": srs,
+            "styles": "",
+            "format": output_format,
+            "time": time_param,
+        }
+        
+        # Send the request
+        response = requests.get(base_url, params=params)
+        
+        if response.status_code == 200:
+            # Save the image locally
+            filename = os.path.join(output_directory, f"{img_num}.png")
+            with open(filename, "wb") as f:
+                f.write(response.content)
+            # print(f"Saved: {filename}")
+        else:
+            print(f"Failed to fetch image for time {time_param}. Status code: {response.status_code}")
+        
+        # Increment time by the time step
+        current_time += time_step
+        img_num += 1
 
-    # Calculate target dimensions based on max_dimension
-    if bbox_width > bbox_height:
-        # Width is greater, so set the width to max_dimension
-        target_width = max_dimension
-        target_height = int(target_width / aspect_ratio)
-    else:
-        # Height is greater, so set the height to max_dimension
-        target_height = max_dimension
-        target_width = int(target_height * aspect_ratio)
-
-    return target_width, target_height
-
-# Example usage
-bbox = (19, 83, 27, 66)  # (min_x, min_y, max_x, max_y)
-max_dimension = 1000  # Maximum allowed width or height (in pixels)
-
-target_width, target_height = calculate_target_dimensions(bbox, max_dimension)
-print(f"Target Width: {target_width}, Target Height: {target_height}")
-
-    
-get_wms_imgs('19,83,27,66', '2024-07-01T00:01:00Z/2024-09-31T00:00:00', 'input_frames/4.jpg')
+# Run the function
+fetch_images(bbox_input, width_input, height_input, start_time_input, end_time_input, time_step_input)
