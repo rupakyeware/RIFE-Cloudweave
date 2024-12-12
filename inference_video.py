@@ -81,8 +81,7 @@ parser.add_argument('--exp', dest='exp', type=int, default=1)
 args = parser.parse_args()
 
 # Fetch the images from the WMS in TIF
-print(datetime.fromisoformat(args.start_time))
-fetch_images(args.bbox, args.width, args.height, datetime.fromisoformat(args.start_time), datetime.fromisoformat(args.end_time), timedelta(minutes=args.time_step))
+fetch_images(args.bbox, args.width, args.height, args.start_time, args.end_time)
 
 # Preprocess the images, convert them into png and place them into input_frames
 # td = TranslateDataset(max_threads=8)
