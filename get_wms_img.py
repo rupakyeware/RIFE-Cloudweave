@@ -8,11 +8,6 @@ layer_name = "cyc"
 srs = "EPSG:4326"
 output_format = "image/png"
 
-# Specify start and end time in ISO 8601 format
-# start_time_input = datetime(2019, 5, 20, 15, 0, 0)  
-# end_time_input = datetime(2019, 5, 20, 17, 0, 0)   
-# time_step_input = timedelta(minutes=30)  # Interval between requests
-
 # Directory to save the images
 output_directory = "./input_frames"
 
@@ -65,7 +60,7 @@ def fetch_images(bbox, width, height, start_time, end_time):
             "width": width,
             "height": height,
             "srs": srs,
-            "styles": "", 
+            "styles": "",
             "format": output_format,
             # "time": time_param,
             "dpi":96,
