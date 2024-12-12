@@ -12,3 +12,7 @@ test/
 *.npz
 
 *.zip
+
+input_frames
+
+vid_out

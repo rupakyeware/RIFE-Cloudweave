@@ -5,16 +5,8 @@ from datetime import datetime, timedelta
 # GeoServer URL and parameters
 base_url = "http://10.10.9.25:8080/geoserver/cloudweave/wcs"
 layer_name = "cyc"
-bbox_input = "4953717.340298529714,-1118889.974843325792,12245143.98726223782,5700582.732343434356"
-width_input = 612
-height_input = 572
-srs = "EPSG:3857"
+srs = "EPSG:4326"
 output_format = "image/png"
-
-# Specify start and end time in ISO 8601 format
-# start_time_input = datetime(2019, 5, 20, 15, 0, 0)  
-# end_time_input = datetime(2019, 5, 20, 17, 0, 0)   
-# time_step_input = timedelta(minutes=30)  # Interval between requests
 
 # Directory to save the images
 output_directory = "./input_frames"
@@ -38,16 +30,16 @@ def fetch_images(bbox, width, height, start_time, end_time, time_step):
             "width": width,
             "height": height,
             "srs": srs,
-            "styles": "", 
+            "styles": "",
             "format": output_format,
             "time": time_param,
             "dpi":96,
             "map_resolution":96,
             "transparent":True
         }
-        
+
         print(current_time, end_time)
-        
+
         # Send the request
         response = requests.get(base_url, params=params)
         print(response.url)
@@ -58,7 +50,7 @@ def fetch_images(bbox, width, height, start_time, end_time, time_step):
                 f.write(response.content)
         else:
             print(f"Failed to fetch image for time {time_param}. Status code: {response.status_code}")
-        
+
         current_time += time_step
         img_num += 1
 
