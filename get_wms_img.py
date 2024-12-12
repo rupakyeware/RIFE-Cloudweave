@@ -3,17 +3,17 @@ import requests
 from datetime import datetime, timedelta
 
 # GeoServer URL and parameters
-base_url = "http://172.20.10.2:8081/geoserver/cloudweave/wms"
+base_url = "http://10.10.9.25:8080/geoserver/cloudweave/wcs"
 layer_name = "cyc"
-bbox_input = "-3473242.733735,-1058893.6874970002,3473242.733735,5401854.420193"
-width_input = 768
-height_input = 714
-srs = "EPSG:4326"
-output_format = "image/tiff"
+bbox_input = "4953717.340298529714,-1118889.974843325792,12245143.98726223782,5700582.732343434356"
+width_input = 612
+height_input = 572
+srs = "EPSG:3857"
+output_format = "image/png"
 
 # Specify start and end time in ISO 8601 format
-# start_time_input = datetime(2019, 11, 2, 0, 0, 0)  
-# end_time_input = datetime(2019, 11, 4, 23, 59, 59)   
+# start_time_input = datetime(2019, 5, 20, 15, 0, 0)  
+# end_time_input = datetime(2019, 5, 20, 17, 0, 0)   
 # time_step_input = timedelta(minutes=30)  # Interval between requests
 
 # Directory to save the images
@@ -41,6 +41,9 @@ def fetch_images(bbox, width, height, start_time, end_time, time_step):
             "styles": "", 
             "format": output_format,
             "time": time_param,
+            "dpi":96,
+            "map_resolution":96,
+            "transparent":True
         }
         
         print(current_time, end_time)
@@ -50,7 +53,7 @@ def fetch_images(bbox, width, height, start_time, end_time, time_step):
         print(response.url)
         print('out')
         if response.status_code == 200:
-            filename = os.path.join(output_directory, f"{img_num}.tif")
+            filename = os.path.join(output_directory, f"{img_num}.png")
             with open(filename, "wb") as f:
                 f.write(response.content)
         else:

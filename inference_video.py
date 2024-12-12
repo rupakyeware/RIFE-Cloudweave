@@ -7,7 +7,6 @@ from tqdm import tqdm
 from torch.nn import functional as F
 import warnings
 import _thread
-import skvideo.io
 from queue import Queue, Empty
 from model.pytorch_msssim import ssim_matlab
 from get_wms_img import fetch_images
@@ -18,7 +17,6 @@ warnings.filterwarnings("ignore")
 
 def transferAudio(sourceVideo, targetVideo):
     import shutil
-    import moviepy.editor
     tempAudioFileName = "./temp/audio.mkv"
 
     # split audio from original video file and store in "temp" directory
@@ -68,7 +66,7 @@ parser.add_argument('--width', dest='width', type=int, default=None)
 parser.add_argument('--start_time', dest='start_time', type=str, default=None)
 parser.add_argument('--end_time', dest='end_time', type=str, default=None)
 parser.add_argument('--time_step', dest='time_step', type=int, default=None)
-parser.add_argument('--processed', dest='processed', type=str, default=None)
+# parser.add_argument('--processed', dest='processed', type=str, default=None)
 
 parser.add_argument('--montage', dest='montage', action='store_true', help='montage origin video')
 parser.add_argument('--model', dest='modelDir', type=str, default='train_log', help='directory with trained model files')
@@ -83,7 +81,8 @@ parser.add_argument('--exp', dest='exp', type=int, default=1)
 args = parser.parse_args()
 
 # Fetch the images from the WMS in TIF
-fetch_images(args.bbox, args.width, args.height, datetime.fromisoformat(args.start_time), datetime.fromisoformat(args.end_time), timedelta(args.time_step))
+print(datetime.fromisoformat(args.start_time))
+fetch_images(args.bbox, args.width, args.height, datetime.fromisoformat(args.start_time), datetime.fromisoformat(args.end_time), timedelta(minutes=args.time_step))
 
 # Preprocess the images, convert them into png and place them into input_frames
 # td = TranslateDataset(max_threads=8)
